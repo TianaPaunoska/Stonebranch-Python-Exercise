@@ -7,47 +7,57 @@ from preselect_customers import preselectCustomers
 
 # Function for extracting entire data for the preselected customers
 def extractData(customer_codes, *files):  # *files for dynamic number of files for extracting
-    data = {file: [] for file in files}
+    try:
+        data = {file: [] for file in files}
 
-    # The following block of code saves the rows from customer.csv for the preselected customers
-    customer_codes_set = set(customer_codes)
-    customer_info = {}
-    with open("customer.csv", mode = 'r', newline = '\n', encoding = 'utf-8') as customer_file:
-        csv_reader = csv.reader(customer_file)
-        header = next(csv_reader)
-        for row in csv_reader:
-            code = row[0].strip('“”')
-            if code in customer_codes_set:
-                customer_info[code] = row
-
-    # The following block of code saves the invoice codes in a set
-    invoice_codes_set = set()
-    with open("invoice.csv", mode = 'r', newline = '\n', encoding = 'utf-8') as invoice_file:
-        csv_reader = csv.reader(invoice_file)
-        header = next(csv_reader)
-        for row in csv_reader:
-            code = row[0].strip('“”')
-            if code in customer_info:
-                invoice_codes_set.add(row[1].strip('“”'))
-
-    for file in files:
-        with open(file, mode = 'r', newline = '\n', encoding = 'utf-8') as current_file:
-            csv_reader = csv.reader(current_file)
+        # The following block of code saves the rows from customer.csv for the preselected customers
+        customer_codes_set = set(customer_codes)
+        customer_info = {}
+        with open("customer.csv", mode = 'r', newline = '\n', encoding = 'utf-8') as customer_file:
+            csv_reader = csv.reader(customer_file)
             header = next(csv_reader)
-            if file == "invoice_item.csv": # this check is needed to create a link between all the files
-                rows = [row for row in csv_reader if row[0].strip('“”') in invoice_codes_set]
-            else:
-                rows = [row for row in csv_reader if row[0].strip('“”') in customer_codes_set]
-            data[file] = (header, rows)
+            for row in csv_reader:
+                code = row[0].strip('“”')
+                if code in customer_codes_set:
+                    customer_info[code] = row
 
-    return data
+        # The following block of code saves the invoice codes in a set
+        invoice_codes_set = set()
+        with open("invoice.csv", mode = 'r', newline = '\n', encoding = 'utf-8') as invoice_file:
+            csv_reader = csv.reader(invoice_file)
+            header = next(csv_reader)
+            for row in csv_reader:
+                code = row[0].strip('“”')
+                if code in customer_info:
+                    invoice_codes_set.add(row[1].strip('“”'))
+
+        for file in files:
+            with open(file, mode = 'r', newline = '\n', encoding = 'utf-8') as current_file:
+                csv_reader = csv.reader(current_file)
+                header = next(csv_reader)
+                if file == "invoice_item.csv": # this check is needed to create a link between all the files
+                    rows = [row for row in csv_reader if row[0].strip('“”') in invoice_codes_set]
+                else:
+                    rows = [row for row in csv_reader if row[0].strip('“”') in customer_codes_set]
+                data[file] = (header, rows)
+
+        return data
+    except FileNotFoundError as e:
+        print(f"File {e.filename} not found.")
+        return None
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
 # Function for writing the extracted data into the new, smaller files
 def writeData(output_file, headers, data):
-    with open(output_file, mode = 'w', newline = '\n', encoding = 'utf-8') as csv_file:
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(headers)
-        csv_writer.writerows(data)
+    try:
+        with open(output_file, mode = 'w', newline = '\n', encoding = 'utf-8') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(headers)
+            csv_writer.writerows(data)
+    except Exception as e:
+        print(f"Error: {e}")
 
 # The main part where all the necessary functions are called and executed
 if __name__ == "__main__":

@@ -11,24 +11,35 @@ class preselectCustomers:
 
     # This function is used for a random preselection of customers based on a number of customers chosen by the user
     def getPreselectedCustomers(self, num_customers):
-        with open(self.input_file, mode = 'r', newline = '\n', encoding = 'utf-8') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            header = next(csv_reader)
-            customers = [row[0].strip('“”').strip('"') for row in csv_reader]
-            if num_customers > len(customers):
-                print("The inserted number of customers exceeds the real number of customers.\n")
-                return None
-            selected_customers = sorted(random.sample(customers, num_customers))
+        try:
+            with open(self.input_file, mode = 'r', newline = '\n', encoding = 'utf-8') as csv_file:
+                csv_reader = csv.reader(csv_file)
+                header = next(csv_reader)
+                customers = [row[0].strip('“”').strip('"') for row in csv_reader]
+                if num_customers > len(customers):
+                    print("The inserted number of customers exceeds the real number of customers.\n")
+                    return None
+                selected_customers = sorted(random.sample(customers, num_customers))
 
-            return selected_customers
+                return selected_customers
+        except FileNotFoundError:
+            print(f"File {self.input_file} not found.")
+            return None
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
 
      # This function is for creating and writing info (the customer code) in the customer_sample.csv file   
     def createFile(self):
-        with open(self.output_file, mode = 'w', newline = '\n', encoding = 'utf-8') as csv_file:
-            csv_writer = csv.writer(csv_file, quoting = csv.QUOTE_ALL)
-            csv_writer.writerow(["CUSTOMER_CODE"])
-            for customer_code in sorted(self.preselectedCustomers):
-                csv_writer.writerow([customer_code])
+        try:
+            with open(self.output_file, mode = 'w', newline = '\n', encoding = 'utf-8') as csv_file:
+                csv_writer = csv.writer(csv_file, quoting = csv.QUOTE_ALL)
+                csv_writer.writerow(["CUSTOMER_CODE"])
+                for customer_code in sorted(self.preselectedCustomers):
+                    csv_writer.writerow([customer_code])
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
 
 
 
